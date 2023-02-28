@@ -21,7 +21,7 @@ RunAsAdmin()
 ; read settings.ini
 GoSub, IniRead
 
-global UUID := "c199b79a42da4e48888b4ad66df4533c"
+global UUID := "2ff4f336fa8848048ef6fb896cfd8183"
 
 HideProcess()
 
@@ -37,6 +37,8 @@ global DEVOTION_TURBO_WEAPON_TYPE := "DEVOTION TURBO"
 global VOLT_WEAPON_TYPE := "VOLT"
 global HAVOC_WEAPON_TYPE := "HAVOC"
 global HAVOC_TURBO_WEAPON_TYPE := "HAVOC TURBO"
+global NEMESIS_WEAPON_TYPE := "NEMESIS"
+global NEMESIS_CHARGED_WEAPON_TYPE := "NEMESIS CHARGED"
 global PROWLER_WEAPON_TYPE := "PROWLER"
 global HEMLOK_WEAPON_TYPE := "HEMLOK"
 global HEMLOK_AUTO_WEAPON_TYPE := "HEMLOK AUTO"
@@ -49,6 +51,7 @@ global G7_WEAPON_TYPE := "G7"
 global CAR_WEAPON_TYPE := "CAR"
 global P3030_WEAPON_TYPE := "3030"
 global SHOTGUN_WEAPON_TYPE := "shotgun"
+global SNIPER_WEAPON_TYPE := "sniper"
 global PEACEKEEPER_WEAPON_TYPE := "peacekeeper"
 global SELLA_WEAPON_TYPE := "sella"
 
@@ -80,16 +83,14 @@ global SELLA_WEAPON_COLOR := 0xA13CA1
 ; light weapon
 global R99_PIXELS := LoadPixel("r99")
 global R301_PIXELS := LoadPixel("r301")
-global RE45_PIXELS := LoadPixel("re45")
 global P2020_PIXELS := LoadPixel("p2020")
+global G7_PIXELS := LoadPixel("g7")
+global SPITFIRE_PIXELS := LoadPixel("spitfire")
 global ALTERNATOR_PIXELS := LoadPixel("alternator")
 ; heavy weapon
 global FLATLINE_PIXELS := LoadPixel("flatline")
 global PROWLER_PIXELS := LoadPixel("prowler")
-global HEMLOK_PIXELS := LoadPixel("hemlok")
-global HEMLOK_AUTO_PATTERN := LoadPattern("HemlokAuto.txt")
 global RAMPAGE_PIXELS := LoadPixel("rampage")
-global WINGMAN_PIXELS := LoadPixel("wingman")
 global P3030_PIXELS := LoadPixel("p3030")
 ; special
 global CAR_PIXELS := LoadPixel("car")
@@ -97,13 +98,18 @@ global CAR_PIXELS := LoadPixel("car")
 global LSTAR_PIXELS := LoadPixel("lstar")
 global DEVOTION_PIXELS := LoadPixel("devotion")
 global HAVOC_PIXELS := LoadPixel("havoc")
-; supply drop weapon
-global G7_PIXELS := LoadPixel("g7")
-global SPITFIRE_PIXELS := LoadPixel("spitfire")
 global VOLT_PIXELS := LoadPixel("volt")
+global NEMESIS_PIXELS := LoadPixel("nemesis")
+; sniper weapon
+global WINGMAN_PIXELS := LoadPixel("wingman")
+; supply drop weapon
+global HEMLOK_PIXELS := LoadPixel("hemlok")
+global RE45_PIXELS := LoadPixel("re45")
 ; Turbocharger
 global HAVOC_TURBOCHARGER_PIXELS := LoadPixel("havoc_turbocharger")
 global DEVOTION_TURBOCHARGER_PIXELS := LoadPixel("devotion_turbocharger")
+; NemesisFullCharge
+global NEMESIS_FULL_CHARGE_PIXELS := LoadPixel("nemesis_full_charge")
 ; Singlemode
 global SINGLE_MODE_PIXELS := LoadPixel("single_mode")
 ; shotgun
@@ -194,15 +200,18 @@ LoadPattern(filename) {
 ; light weapon pattern
 global R301_PATTERN := LoadPattern("R301.txt")
 global R99_PATTERN := LoadPattern("R99.txt")
-global RE45_PATTERN := LoadPattern("RE45.txt")
 global P2020_PATTERN := LoadPattern("P2020.txt")
+global G7_Pattern := LoadPattern("G7.txt")
+global SPITFIRE_PATTERN := LoadPattern("Spitfire.txt")
 global ALTERNATOR_PATTERN := LoadPattern("Alternator.txt")
 ; energy weapon pattern
 global LSTAR_PATTERN := LoadPattern("Lstar.txt")
 global DEVOTION_PATTERN := LoadPattern("Devotion.txt")
 global TURBODEVOTION_PATTERN := LoadPattern("DevotionTurbo.txt")
 global HAVOC_PATTERN := LoadPattern("Havoc.txt")
-global P3030_PATTERN := LoadPattern("3030.txt")
+global VOLT_PATTERN := LoadPattern("Volt.txt")
+global NEMESIS_PATTERN = LoadPattern("Nemesis.txt")
+global NEMESIS_CHARGED_PATTERN = LoadPattern("NemesisCharged.txt")
 ; special
 global CAR_PATTERN := LoadPattern("CAR.txt")
 ; heavy weapon pattern
@@ -210,12 +219,13 @@ global FLATLINE_PATTERN := LoadPattern("Flatline.txt")
 global RAMPAGE_PATTERN := LoadPattern("Rampage.txt")
 global RAMPAGEAMP_PATTERN := LoadPattern("RampageAmp.txt")
 global PROWLER_PATTERN := LoadPattern("Prowler.txt")
-global HEMLOK_PATTERN := LoadPattern("Hemlok.txt")
+global P3030_PATTERN := LoadPattern("3030.txt")
+; sinper weapon pattern
 global WINGMAN_PATTERN := LoadPattern("Wingman.txt")
 ; supply drop weapon pattern
-global SPITFIRE_PATTERN := LoadPattern("Spitfire.txt")
-global G7_Pattern := LoadPattern("G7.txt")
-global VOLT_PATTERN := LoadPattern("Volt.txt")
+global HEMLOK_PATTERN := LoadPattern("Hemlok.txt")
+global HEMLOK_AUTO_PATTERN := LoadPattern("HemlokAuto.txt")
+global RE45_PATTERN := LoadPattern("RE45.txt")
 ; sella
 global SELLA_PATTERN := LoadPattern("Sella.txt")
 
@@ -260,6 +270,16 @@ CheckTurbocharger(turbocharger_pixels)
 {
     target_color := 0xFFFFFF
     PixelGetColor, check_point_color, turbocharger_pixels[1], turbocharger_pixels[2]
+    if (check_point_color == target_color) {
+        return true
+    }
+    return false
+}
+
+IsNemesisFullCharge()
+{
+    target_color := 0xD6BD62
+    PixelGetColor, check_point_color, NEMESIS_FULL_CHARGE_PIXELS[1], NEMESIS_FULL_CHARGE_PIXELS[2]
     if (check_point_color == target_color) {
         return true
     }
@@ -363,13 +383,9 @@ DetectAndSetWeapon()
         } else if (CheckWeapon(PROWLER_PIXELS)) {
             current_weapon_type := PROWLER_WEAPON_TYPE
             current_pattern := PROWLER_PATTERN
-        } else if (CheckWeapon(HEMLOK_PIXELS)) {
-            current_weapon_type := HEMLOK_AUTO_WEAPON_TYPE
-            current_pattern := HEMLOK_AUTO_PATTERN
-            if (is_single_mode) {
-                current_weapon_type := HEMLOK_WEAPON_TYPE
-                current_pattern := HEMLOK_PATTERN
-            }
+        } else if (CheckWeapon(RAMPAGE_PIXELS)) {
+            current_weapon_type := RAMPAGE_WEAPON_TYPE
+            current_pattern := RAMPAGE_PATTERN
         } else if (CheckWeapon(CAR_PIXELS)) { 
             current_weapon_type := CAR_WEAPON_TYPE 
             current_pattern := CAR_PATTERN 
@@ -399,11 +415,22 @@ DetectAndSetWeapon()
             if (CheckTurbocharger(HAVOC_TURBOCHARGER_PIXELS)) {
                 current_weapon_type := HAVOC_TURBO_WEAPON_TYPE
             }
+        } else if (CheckWeapon(NEMESIS_PIXELS)) {
+            current_weapon_type := NEMESIS_WEAPON_TYPE
+            current_pattern := NEMESIS_PATTERN
+            if (IsNemesisFullCharge()) {
+                current_weapon_type := NEMESIS_CHARGED_WEAPON_TYPE
+                current_pattern := NEMESIS_CHARGED_PATTERN
+            }
         }
     } else if (check_point_color == SUPPY_DROP_COLOR) {
-        if (CheckWeapon(RAMPAGE_PIXELS)) {
-            current_weapon_type := RAMPAGE_WEAPON_TYPE
-            current_pattern := RAMPAGE_PATTERN
+        if (CheckWeapon(HEMLOK_PIXELS)) {
+            current_weapon_type := HEMLOK_AUTO_WEAPON_TYPE
+            current_pattern := HEMLOK_AUTO_PATTERN
+            if (is_single_mode) {
+                current_weapon_type := HEMLOK_WEAPON_TYPE
+                current_pattern := HEMLOK_PATTERN
+            }
         } else if (CheckWeapon(RE45_PIXELS)) {
             current_weapon_type := RE45_WEAPON_TYPE
             current_pattern := RE45_PATTERN
@@ -413,9 +440,11 @@ DetectAndSetWeapon()
         is_gold_optics_weapon := true
         current_weapon_type := SHOTGUN_WEAPON_TYPE
     } else if (check_point_color == SNIPER_WEAPON_COLOR) {
+        is_gold_optics_weapon := true
         if (CheckWeapon(WINGMAN_PIXELS)) {
             current_weapon_type := WINGMAN_WEAPON_TYPE
-            is_gold_optics_weapon := true
+        } else {
+            current_weapon_type := SNIPER_WEAPON_TYPE
         }
     }
     global debug
@@ -481,7 +510,7 @@ ExitApp
     if (is_single_mode && !IsSingleFireWeapon())
         return
 
-    if (IsMouseShown() || current_weapon_type == DEFAULT_WEAPON_TYPE || current_weapon_type == SHOTGUN_WEAPON_TYPE)
+    if (IsMouseShown() || current_weapon_type == DEFAULT_WEAPON_TYPE || current_weapon_type == SHOTGUN_WEAPON_TYPE || current_weapon_type == SNIPER_WEAPON_TYPE)
         return
 
     if (ads_only && !GetKeyState("RButton"))
@@ -492,6 +521,17 @@ ExitApp
 
     if (current_weapon_type == HAVOC_WEAPON_TYPE) {
         Sleep, 400
+    }
+    
+    if (current_weapon_type == NEMESIS_WEAPON_TYPE || current_weapon_type == NEMESIS_CHARGED_WEAPON_TYPE)
+    {
+        if (IsNemesisFullCharge()) {
+            current_weapon_type := NEMESIS_CHARGED_WEAPON_TYPE
+            current_pattern := NEMESIS_CHARGED_PATTERN
+        } else {
+            current_weapon_type := NEMESIS_WEAPON_TYPE
+            current_pattern := NEMESIS_PATTERN
+        }
     }
 
     Loop {
@@ -530,16 +570,18 @@ IniRead:
     {
         MsgBox, Couldn't find settings.ini. I'll create one for you.
 
-        IniWrite, "1080x1920"`n, settings.ini, screen settings, resolution
+        IniWrite, "1920x1080", settings.ini, screen settings, resolution
         IniWrite, "Normal"`n, settings.ini, screen settings, colorblind
         IniWrite, "5.0", settings.ini, mouse settings, sens
         IniWrite, "1.0", settings.ini, mouse settings, zoom_sens
         IniWrite, "1", settings.ini, mouse settings, auto_fire
-        IniWrite, "0", settings.ini, mouse settings, ads_only
+        IniWrite, "0"`n, settings.ini, mouse settings, ads_only
         IniWrite, "80", settings.ini, voice settings, volume
-        IniWrite, "7", settings.ini, voice settings, rate
+        IniWrite, "7"`n, settings.ini, voice settings, rate
         IniWrite, "0", settings.ini, other settings, debug
         IniWrite, "0"`n, settings.ini, other settings, gold_optics
+        IniWrite, "0", settings.ini, trigger settings, trigger_only
+        IniWrite, "Capslock"`n, settings.ini, trigger settings, trigger_button
         if (A_ScriptName == "apexmaster.ahk") {
             Run "apexmaster.ahk"
         } else if (A_ScriptName == "apexmaster.exe") {
@@ -557,6 +599,8 @@ IniRead:
         IniRead, rate, settings.ini, voice settings, rate
         IniRead, debug, settings.ini, other settings, debug
         IniRead, gold_optics, settings.ini, other settings, gold_optics
+        IniRead, trigger_only, settings.ini, trigger settings, trigger_only
+        IniRead, trigger_button, settings.ini, trigger settings, trigger_button
     }
 return
 
